@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client"; // Updated import path
+import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Upload, Trash2, FileText } from "lucide-react";
 
 const ResumeUpload = () => {
@@ -76,6 +76,7 @@ const ResumeUpload = () => {
         .upload(filePath, file);
         
       if (uploadError) {
+        console.error("Upload error:", uploadError);
         throw uploadError;
       }
       
@@ -89,7 +90,6 @@ const ResumeUpload = () => {
       toast({
         title: "File uploaded successfully",
         description: `${file.name} has been uploaded.`,
-        variant: "default"
       });
     } catch (error) {
       console.error('Error uploading resume:', error);
@@ -109,14 +109,14 @@ const ResumeUpload = () => {
     try {
       // Extract file path from URL
       const pathMatch = fileUrl.match(/user-resumes\/(.+)$/);
-      const filePath = pathMatch ? pathMatch[1] : null;
+      if (!pathMatch) throw new Error('Invalid file path');
       
-      if (!filePath) throw new Error('Invalid file path');
+      const filePath = pathMatch[1];
       
       // Delete file from Supabase Storage
       const { error } = await supabase.storage
         .from('user-resumes')
-        .remove([`resumes/${filePath}`]);
+        .remove([filePath]);
         
       if (error) throw error;
       
@@ -126,7 +126,6 @@ const ResumeUpload = () => {
       toast({
         title: "File deleted",
         description: "Your resume has been deleted.",
-        variant: "default"
       });
     } catch (error) {
       console.error('Error deleting resume:', error);
@@ -151,13 +150,20 @@ const ResumeUpload = () => {
       
       if (error) throw error;
       
-      toast({
-        title: "Resume parsed successfully",
-        description: "Your profile has been updated with the resume information.",
-        variant: "default"
-      });
-      
-      console.log('Parsed resume data:', data);
+      if (data && data.success) {
+        // Store the parsed data or update the UI
+        console.log('Parsed resume data:', data.data);
+        
+        toast({
+          title: "Resume parsed successfully",
+          description: "Your profile has been updated with the resume information.",
+        });
+        
+        // Here you would typically update state/context with the parsed data
+        // or dispatch actions to update the UI with the parsed information
+      } else {
+        throw new Error('Failed to parse resume');
+      }
       
     } catch (error) {
       console.error('Error parsing resume:', error);

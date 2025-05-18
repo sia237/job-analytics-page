@@ -4,9 +4,74 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import ProfileSidebar from "../components/ProfileSidebar";
 import ResumeUpload from "../components/ResumeUpload";
+import ResumeDetailDialog from "../components/ResumeDetailDialog";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { PlusCircle } from "lucide-react";
+
+// Define the section type for type safety
+type SectionType = 
+  | "education" 
+  | "personalDetails" 
+  | "keySkills" 
+  | "careerPreferences" 
+  | "languages" 
+  | "internships" 
+  | "projects" 
+  | "summary" 
+  | "accomplishments" 
+  | "exams" 
+  | "employment" 
+  | "academicAchievements";
+
+interface ResumeSection {
+  id: string;
+  title: string;
+  type: SectionType;
+  color: string;
+  icon: string;
+  data?: Record<string, any> | null;
+}
 
 const ResumeBuilder = () => {
+  const { toast } = useToast();
+  const [activeSection, setActiveSection] = useState<ResumeSection | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [resumeSections, setResumeSections] = useState<ResumeSection[]>([
+    { id: "personal", title: "Personal Details", type: "personalDetails", color: "bg-pink-100", icon: "👤", data: null },
+    { id: "education", title: "Education", type: "education", color: "bg-blue-100", icon: "🎓", data: null },
+    { id: "skills", title: "Key Skills", type: "keySkills", color: "bg-red-100", icon: "🔑", data: null },
+    { id: "preferences", title: "Career Preferences", type: "careerPreferences", color: "bg-amber-100", icon: "📋", data: null },
+    { id: "languages", title: "Languages", type: "languages", color: "bg-green-100", icon: "🌎", data: null },
+    { id: "internships", title: "Internships", type: "internships", color: "bg-purple-100", icon: "💼", data: null },
+    { id: "projects", title: "Projects", type: "projects", color: "bg-cyan-100", icon: "📊", data: null },
+    { id: "summary", title: "Profile Summary", type: "summary", color: "bg-blue-100", icon: "📝", data: null },
+    { id: "accomplishments", title: "Accomplishments", type: "accomplishments", color: "bg-pink-100", icon: "🏆", data: null },
+    { id: "exams", title: "Entrance Exam", type: "exams", color: "bg-purple-100", icon: "📚", data: null },
+    { id: "employment", title: "Employment History", type: "employment", color: "bg-violet-100", icon: "📅", data: null },
+    { id: "academic", title: "Academic Achievements", type: "academicAchievements", color: "bg-green-100", icon: "🎯", data: null }
+  ]);
+
+  const handleOpenDialog = (section: ResumeSection) => {
+    setActiveSection(section);
+    setDialogOpen(true);
+  };
+
+  const handleSaveSection = (data: Record<string, any>) => {
+    if (!activeSection) return;
+    
+    setResumeSections((prev) =>
+      prev.map((section) =>
+        section.id === activeSection.id ? { ...section, data } : section
+      )
+    );
+    
+    toast({
+      title: "Section Updated",
+      description: `Your ${activeSection.title.toLowerCase()} information has been saved.`,
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
@@ -43,34 +108,35 @@ const ResumeBuilder = () => {
             
             {/* Resume Sections */}
             <div className="space-y-4">
-              {[
-                { title: "Education", color: "bg-blue-100", icon: "🎓" },
-                { title: "Personal Details", color: "bg-pink-100", icon: "👤" },
-                { title: "Key Skills", color: "bg-red-100", icon: "🔑" },
-                { title: "Career Preferences", color: "bg-amber-100", icon: "📋" },
-                { title: "Languages", color: "bg-green-100", icon: "🌎" },
-                { title: "Internships", color: "bg-purple-100", icon: "💼" },
-                { title: "Projects", color: "bg-cyan-100", icon: "📊" },
-                { title: "Profile Summary", color: "bg-blue-100", icon: "📝" },
-                { title: "Accomplishments", color: "bg-pink-100", icon: "🏆" },
-                { title: "Entrance Exam", color: "bg-purple-100", icon: "📚" },
-                { title: "Employment History", color: "bg-violet-100", icon: "📅" },
-                { title: "Academic Achievements", color: "bg-green-100", icon: "🎯" }
-              ].map((section, index) => (
+              {resumeSections.map((section) => (
                 <div 
-                  key={index} 
+                  key={section.id} 
                   className={`${section.color} p-4 rounded-lg flex justify-between items-center`}
                 >
                   <div className="flex items-center">
                     <span className="text-2xl mr-3">{section.icon}</span>
-                    <span className="font-medium">{section.title}</span>
+                    <div>
+                      <span className="font-medium">{section.title}</span>
+                      {section.data && (
+                        <p className="text-xs text-gray-600 mt-1">
+                          {section.type === "education" && section.data.institution}
+                          {section.type === "personalDetails" && section.data.fullName}
+                          {section.type === "keySkills" && section.data.skills}
+                          {section.type === "employment" && section.data.company}
+                          {section.type === "projects" && section.data.title}
+                          {/* Add more conditional displays as needed */}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                  <button className="bg-white rounded-full p-2 text-blue-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="12" y1="5" x2="12" y2="19"></line>
-                      <line x1="5" y1="12" x2="19" y2="12"></line>
-                    </svg>
-                  </button>
+                  <Button
+                    onClick={() => handleOpenDialog(section)}
+                    variant="ghost"
+                    size="sm"
+                    className="rounded-full p-2 bg-white text-blue-600 hover:bg-blue-50"
+                  >
+                    <PlusCircle size={20} />
+                  </Button>
                 </div>
               ))}
             </div>
@@ -78,6 +144,18 @@ const ResumeBuilder = () => {
         </div>
       </main>
       <Footer />
+      
+      {/* Dialog for editing sections */}
+      {activeSection && (
+        <ResumeDetailDialog
+          title={activeSection.title}
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}
+          type={activeSection.type}
+          initialData={activeSection.data || {}}
+          onSave={handleSaveSection}
+        />
+      )}
     </div>
   );
 };
