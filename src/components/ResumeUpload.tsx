@@ -2,10 +2,15 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/lib/supabase";
+import { Loader2, Upload, Trash2, FileText } from "lucide-react";
 
 const ResumeUpload = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [fileUrl, setFileUrl] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isParsing, setIsParsing] = useState(false);
   const { toast } = useToast();
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
@@ -35,7 +40,7 @@ const ResumeUpload = () => {
     }
   };
 
-  const handleFile = (file: File) => {
+  const handleFile = async (file: File) => {
     // Check if file is PDF, DOC, or DOCX
     const allowedTypes = ["application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"];
     
@@ -58,40 +63,112 @@ const ResumeUpload = () => {
     }
     
     setUploadedFile(file);
-    toast({
-      title: "File uploaded successfully",
-      description: `${file.name} has been uploaded.`,
-      variant: "default"
-    });
+    setIsUploading(true);
+    
+    try {
+      // Upload file to Supabase Storage
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = `resumes/${fileName}`;
+      
+      const { error: uploadError, data } = await supabase.storage
+        .from('user-resumes')
+        .upload(filePath, file);
+        
+      if (uploadError) {
+        throw uploadError;
+      }
+      
+      // Get the public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('user-resumes')
+        .getPublicUrl(filePath);
+        
+      setFileUrl(publicUrl);
+      
+      toast({
+        title: "File uploaded successfully",
+        description: `${file.name} has been uploaded.`,
+        variant: "default"
+      });
+    } catch (error) {
+      console.error('Error uploading resume:', error);
+      toast({
+        title: "Upload failed",
+        description: "There was an error uploading your resume. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsUploading(false);
+    }
   };
 
-  const handleDelete = () => {
-    setUploadedFile(null);
-    toast({
-      title: "File deleted",
-      description: "Your resume has been deleted.",
-      variant: "default"
-    });
+  const handleDelete = async () => {
+    if (!fileUrl || !uploadedFile) return;
+    
+    try {
+      // Extract file path from URL
+      const pathMatch = fileUrl.match(/user-resumes\/(.+)$/);
+      const filePath = pathMatch ? pathMatch[1] : null;
+      
+      if (!filePath) throw new Error('Invalid file path');
+      
+      // Delete file from Supabase Storage
+      const { error } = await supabase.storage
+        .from('user-resumes')
+        .remove([`resumes/${filePath}`]);
+        
+      if (error) throw error;
+      
+      setUploadedFile(null);
+      setFileUrl(null);
+      
+      toast({
+        title: "File deleted",
+        description: "Your resume has been deleted.",
+        variant: "default"
+      });
+    } catch (error) {
+      console.error('Error deleting resume:', error);
+      toast({
+        title: "Delete failed",
+        description: "There was an error deleting your resume. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
-  const handleParseResume = () => {
-    if (!uploadedFile) return;
+  const handleParseResume = async () => {
+    if (!fileUrl) return;
     
-    // Normally this would be an API call to parse the resume
-    toast({
-      title: "Resume parsing started",
-      description: "Your resume is being analyzed for relevant information.",
-      variant: "default"
-    });
+    setIsParsing(true);
     
-    // Mock delay to simulate parsing
-    setTimeout(() => {
+    try {
+      // Call Supabase Edge Function to parse resume
+      const { data, error } = await supabase.functions.invoke('parse-resume', {
+        body: { fileUrl }
+      });
+      
+      if (error) throw error;
+      
       toast({
         title: "Resume parsed successfully",
         description: "Your profile has been updated with the resume information.",
         variant: "default"
       });
-    }, 2000);
+      
+      console.log('Parsed resume data:', data);
+      
+    } catch (error) {
+      console.error('Error parsing resume:', error);
+      toast({
+        title: "Parsing failed",
+        description: "There was an error parsing your resume. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsParsing(false);
+    }
   };
 
   return (
@@ -106,13 +183,7 @@ const ResumeUpload = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="bg-gray-100 p-2 rounded">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                  <polyline points="14 2 14 8 20 8"></polyline>
-                  <line x1="16" y1="13" x2="8" y2="13"></line>
-                  <line x1="16" y1="17" x2="8" y2="17"></line>
-                  <polyline points="10 9 9 9 8 9"></polyline>
-                </svg>
+                <FileText size={24} className="text-gray-700" />
               </div>
               <div>
                 <p className="font-medium">{uploadedFile.name}</p>
@@ -125,9 +196,17 @@ const ResumeUpload = () => {
                 variant="outline" 
                 size="sm"
                 onClick={handleParseResume}
+                disabled={isParsing}
                 className="border-blue-500 text-blue-500 hover:bg-blue-50"
               >
-                Parse
+                {isParsing ? (
+                  <>
+                    <Loader2 size={16} className="mr-2 animate-spin" />
+                    Parsing...
+                  </>
+                ) : (
+                  'Parse'
+                )}
               </Button>
               <Button 
                 variant="outline" 
@@ -135,6 +214,7 @@ const ResumeUpload = () => {
                 onClick={handleDelete}
                 className="border-red-500 text-red-500 hover:bg-red-50"
               >
+                <Trash2 size={16} className="mr-2" />
                 Delete
               </Button>
             </div>
@@ -150,16 +230,21 @@ const ResumeUpload = () => {
           onDrop={handleDrop}
           onClick={() => document.getElementById("resumeUpload")?.click()}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 mb-2">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-            <polyline points="17 8 12 3 7 8"></polyline>
-            <line x1="12" y1="3" x2="12" y2="15"></line>
-          </svg>
-          <p className="text-gray-600 mb-1">Drag & drop your resume here</p>
-          <p className="text-gray-500 text-sm mb-4">or click to browse files</p>
-          <Button variant="default" size="sm" className="bg-blue-600 hover:bg-blue-700">
-            Upload Resume
-          </Button>
+          {isUploading ? (
+            <div className="flex flex-col items-center">
+              <Loader2 size={40} className="text-blue-500 animate-spin mb-2" />
+              <p className="text-gray-600">Uploading...</p>
+            </div>
+          ) : (
+            <>
+              <Upload size={40} className="text-gray-400 mb-2" />
+              <p className="text-gray-600 mb-1">Drag & drop your resume here</p>
+              <p className="text-gray-500 text-sm mb-4">or click to browse files</p>
+              <Button variant="default" size="sm" className="bg-blue-600 hover:bg-blue-700">
+                Upload Resume
+              </Button>
+            </>
+          )}
           <input
             id="resumeUpload"
             type="file"

@@ -1,11 +1,23 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import JobCategories from "../components/JobCategories";
 import JobsList from "../components/JobsList";
 import Footer from "../components/Footer";
 import JobFilters from "../components/JobFilters";
 import { Job } from "../types/job";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Search } from "lucide-react";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { supabase } from "@/lib/supabase";
 
 // Mock data for jobs
 const MOCK_JOBS: Job[] = [
@@ -22,58 +34,124 @@ const MOCK_JOBS: Job[] = [
   },
   {
     id: "2",
-    title: "Senior UI/UX Designer",
-    company: "Amazon",
-    location: "Gurgaon (HQ)",
+    title: "Frontend Developer",
+    company: "Microsoft",
+    location: "Noida (HQ)",
     type: "Part-time remote",
-    experience: "3-5 years",
-    salary: "₹ 6-8.5 LPA",
-    skills: ["Figma", "Adobe XD", "Sketch"],
-    postedDate: "01 May, 2023"
+    experience: "2-4 years",
+    salary: "₹ 5-7.5 LPA",
+    skills: ["React", "JavaScript", "TypeScript"],
+    postedDate: "02 May, 2023"
   },
   {
     id: "3",
-    title: "Senior UI/UX Designer",
-    company: "Amazon",
-    location: "Gurgaon (HQ)",
+    title: "Backend Developer",
+    company: "Google",
+    location: "Bangalore (HQ)",
     type: "Hybrid remote",
     experience: "3-5 years",
-    salary: "₹ 6-8.5 LPA",
-    skills: ["Figma", "Adobe XD", "InVision"],
-    postedDate: "01 May, 2023"
+    salary: "₹ 7-9 LPA",
+    skills: ["Node.js", "Express", "MongoDB"],
+    postedDate: "03 May, 2023"
   },
   {
     id: "4",
-    title: "Senior UI/UX Designer",
-    company: "Amazon",
-    location: "Gurgaon (HQ)",
+    title: "Product Manager",
+    company: "Apple",
+    location: "Delhi (HQ)",
     type: "Full-time remote",
-    experience: "3-5 years",
-    salary: "₹ 6-8.5 LPA",
-    skills: ["Figma", "Adobe XD", "Sketch"],
-    postedDate: "01 May, 2023"
+    experience: "4-6 years",
+    salary: "₹ 8-12 LPA",
+    skills: ["Product Strategy", "Agile", "Roadmapping"],
+    postedDate: "04 May, 2023"
   },
   {
     id: "5",
-    title: "Senior UI/UX Designer",
-    company: "Amazon",
+    title: "HR Manager",
+    company: "Netflix",
     location: "Noida (HQ)",
     type: "Hybrid remote",
-    experience: "3-5 years",
-    salary: "₹ 6-8.5 LPA",
-    skills: ["Figma", "Adobe XD", "Sketch"],
-    postedDate: "01 May, 2023"
+    experience: "5-8 years",
+    salary: "₹ 9-14 LPA",
+    skills: ["Recruitment", "Employee Relations", "HRIS"],
+    postedDate: "05 May, 2023"
   },
   {
     id: "6",
-    title: "Senior UI/UX Designer",
-    company: "Amazon",
+    title: "Data Analyst",
+    company: "Facebook",
     location: "Gurgaon (HQ)",
     type: "Full-time remote",
+    experience: "2-4 years",
+    salary: "₹ 6-8 LPA",
+    skills: ["SQL", "Excel", "Tableau"],
+    postedDate: "06 May, 2023"
+  },
+  {
+    id: "7",
+    title: "SEO Specialist",
+    company: "Twitter",
+    location: "Mumbai (HQ)",
+    type: "Part-time remote",
+    experience: "2-3 years",
+    salary: "₹ 4-6 LPA",
+    skills: ["SEO Tools", "Google Analytics", "Content Strategy"],
+    postedDate: "07 May, 2023"
+  },
+  {
+    id: "8",
+    title: "Marketing Manager",
+    company: "Adobe",
+    location: "Pune (HQ)",
+    type: "Hybrid remote",
+    experience: "4-6 years",
+    salary: "₹ 7-10 LPA",
+    skills: ["Digital Marketing", "Brand Strategy", "Analytics"],
+    postedDate: "08 May, 2023"
+  },
+  {
+    id: "9",
+    title: "Data Entry Specialist",
+    company: "Oracle",
+    location: "Chennai (HQ)",
+    type: "Full-time remote",
+    experience: "1-2 years",
+    salary: "₹ 3-4.5 LPA",
+    skills: ["Excel", "Data Management", "Typing"],
+    postedDate: "09 May, 2023"
+  },
+  {
+    id: "10",
+    title: "DevOps Engineer",
+    company: "IBM",
+    location: "Hyderabad (HQ)",
+    type: "Full-time remote",
     experience: "3-5 years",
-    salary: "₹ 6-8.5 LPA",
-    skills: ["Figma", "Adobe XD", "InVision"],
-    postedDate: "01 May, 2023"
+    salary: "₹ 7-10 LPA",
+    skills: ["Docker", "Kubernetes", "CI/CD"],
+    postedDate: "10 May, 2023"
+  },
+  {
+    id: "11",
+    title: "Content Writer",
+    company: "LinkedIn",
+    location: "Bangalore (HQ)",
+    type: "Part-time remote",
+    experience: "2-3 years",
+    salary: "₹ 4-6 LPA",
+    skills: ["Copywriting", "Editing", "SEO Writing"],
+    postedDate: "11 May, 2023"
+  },
+  {
+    id: "12",
+    title: "Graphic Designer",
+    company: "Canva",
+    location: "Delhi (HQ)",
+    type: "Full-time remote",
+    experience: "2-4 years",
+    salary: "₹ 5-7 LPA",
+    skills: ["Photoshop", "Illustrator", "InDesign"],
+    postedDate: "12 May, 2023"
   },
 ];
 
@@ -81,16 +159,92 @@ const Index = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [isJobModalOpen, setIsJobModalOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [filteredJobs, setFilteredJobs] = useState<Job[]>(MOCK_JOBS);
   const jobsPerPage = 6;
+
+  // Apply filters
+  useEffect(() => {
+    let result = MOCK_JOBS;
+    
+    // Apply search filter
+    if (searchTerm) {
+      const lowerSearch = searchTerm.toLowerCase();
+      result = result.filter(job => 
+        job.title.toLowerCase().includes(lowerSearch) || 
+        job.company.toLowerCase().includes(lowerSearch) ||
+        job.skills.some(skill => skill.toLowerCase().includes(lowerSearch))
+      );
+    }
+    
+    // Apply category filter
+    if (selectedCategory) {
+      switch (selectedCategory) {
+        case "HR":
+          result = result.filter(job => 
+            job.title.includes("HR") || 
+            job.skills.some(skill => skill.includes("Recruitment") || skill.includes("HRIS"))
+          );
+          break;
+        case "Developer":
+          result = result.filter(job => 
+            job.title.includes("Developer") || 
+            job.skills.some(skill => 
+              ["React", "JavaScript", "TypeScript", "Node.js", "Express"].includes(skill)
+            )
+          );
+          break;
+        case "Designer":
+          result = result.filter(job => 
+            job.title.includes("Designer") || 
+            job.skills.some(skill => 
+              ["Figma", "Adobe XD", "Sketch", "Photoshop", "Illustrator"].includes(skill)
+            )
+          );
+          break;
+        case "SEO":
+          result = result.filter(job => 
+            job.title.includes("SEO") || 
+            job.skills.some(skill => skill.includes("SEO"))
+          );
+          break;
+        case "Marketing":
+          result = result.filter(job => 
+            job.title.includes("Marketing") || 
+            job.skills.some(skill => skill.includes("Marketing"))
+          );
+          break;
+        case "Data Entry":
+          result = result.filter(job => 
+            job.title.includes("Data Entry") || 
+            job.skills.some(skill => skill.includes("Data") || skill.includes("Excel"))
+          );
+          break;
+      }
+    }
+    
+    setFilteredJobs(result);
+    setCurrentPage(1); // Reset to first page when filters change
+  }, [searchTerm, selectedCategory]);
 
   const indexOfLastJob = currentPage * jobsPerPage;
   const indexOfFirstJob = indexOfLastJob - jobsPerPage;
-  const currentJobs = MOCK_JOBS.slice(indexOfFirstJob, indexOfLastJob);
-  const totalPages = Math.ceil(MOCK_JOBS.length / jobsPerPage);
+  const currentJobs = filteredJobs.slice(indexOfFirstJob, indexOfLastJob);
+  const totalPages = Math.ceil(filteredJobs.length / jobsPerPage);
 
   const handleJobClick = (job: Job) => {
     setSelectedJob(job);
     setIsJobModalOpen(true);
+  };
+
+  const handleCategorySelect = (category: string) => {
+    setSelectedCategory(category);
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Search already applied via useEffect
   };
 
   return (
@@ -109,49 +263,91 @@ const Index = () => {
           </div>
           
           <div className="w-full md:w-3/4">
-            <JobCategories />
+            <form onSubmit={handleSearch} className="mb-6">
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Input
+                    type="text"
+                    placeholder="Search jobs, companies, or skills..."
+                    className="pl-10"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                </div>
+                <Button type="submit" className="bg-blue-600 hover:bg-blue-700">Search</Button>
+              </div>
+            </form>
+            
+            <JobCategories onCategorySelect={handleCategorySelect} />
+            
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold">Recommended Jobs <span className="bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded-full">{MOCK_JOBS.length}</span></h2>
+              <h2 className="text-xl font-semibold">
+                {selectedCategory ? `${selectedCategory} Jobs` : "Recommended Jobs"} 
+                <span className="bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded-full ml-2">
+                  {filteredJobs.length}
+                </span>
+              </h2>
               <div className="flex items-center gap-2 text-sm text-gray-500">
                 <span>Last updated</span>
                 <span className="w-2 h-2 bg-green-500 rounded-full"></span>
               </div>
             </div>
             
-            <JobsList jobs={currentJobs} onJobClick={handleJobClick} />
+            {filteredJobs.length > 0 ? (
+              <JobsList jobs={currentJobs} onJobClick={handleJobClick} />
+            ) : (
+              <div className="bg-white p-10 rounded-lg border border-gray-200 text-center">
+                <h3 className="text-lg font-medium text-gray-700 mb-2">No jobs found</h3>
+                <p className="text-gray-500">
+                  Try adjusting your search or filters to find more opportunities.
+                </p>
+              </div>
+            )}
             
             {/* Pagination */}
-            <div className="flex justify-center mt-8">
-              <nav className="flex items-center gap-1">
-                <button 
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} 
-                  disabled={currentPage === 1}
-                  className={`px-3 py-1 rounded ${currentPage === 1 ? 'text-gray-400' : 'text-blue-600'}`}
-                >
-                  Previous
-                </button>
-                
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                  <button
-                    key={page}
-                    onClick={() => setCurrentPage(page)}
-                    className={`px-3 py-1 rounded-md ${currentPage === page 
-                      ? 'bg-blue-600 text-white' 
-                      : 'text-gray-700 hover:bg-gray-100'}`}
-                  >
-                    {page}
-                  </button>
-                ))}
-                
-                <button 
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages}
-                  className={`px-3 py-1 rounded ${currentPage === totalPages ? 'text-gray-400' : 'text-blue-600'}`}
-                >
-                  Next
-                </button>
-              </nav>
-            </div>
+            {filteredJobs.length > jobsPerPage && (
+              <div className="flex justify-center mt-8">
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious 
+                        href="#" 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setCurrentPage(prev => Math.max(prev - 1, 1));
+                        }} 
+                      />
+                    </PaginationItem>
+                    
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                      <PaginationItem key={page}>
+                        <PaginationLink 
+                          href="#" 
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setCurrentPage(page);
+                          }}
+                          isActive={currentPage === page}
+                        >
+                          {page}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ))}
+                    
+                    <PaginationItem>
+                      <PaginationNext 
+                        href="#" 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setCurrentPage(prev => Math.min(prev + 1, totalPages));
+                        }} 
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
+            )}
           </div>
         </div>
       </main>
@@ -164,7 +360,7 @@ const Index = () => {
             <div className="flex justify-between mb-4">
               <div className="flex items-start gap-4">
                 <div className="bg-black text-white w-12 h-12 flex items-center justify-center rounded-md">
-                  a
+                  {selectedJob.company.charAt(0)}
                 </div>
                 <div>
                   <h2 className="text-xl font-bold">{selectedJob.title}</h2>
@@ -191,33 +387,38 @@ const Index = () => {
             
             <div className="flex justify-between items-center mb-8">
               <div className="text-lg font-bold">{selectedJob.salary}</div>
-              <button className="bg-blue-600 text-white px-6 py-2 rounded">Apply</button>
+              <Button className="bg-blue-600 hover:bg-blue-700">Apply</Button>
             </div>
             
             <div className="bg-white p-6 rounded-lg">
               <h3 className="text-lg font-semibold mb-4">Job description</h3>
               <p className="text-gray-700 mb-4">
-                We have a Great Job Opportunity with a leading Indian MNC into Manufacturing of Industrial 
-                Mineral & Specialty Chemicals for Andhra.
+                We have a Great Job Opportunity with a leading company for a {selectedJob.title} position.
               </p>
               
-              <h4 className="font-semibold mt-4">Technical Skills:</h4>
+              <h4 className="font-semibold mt-4">Required Skills:</h4>
               <ul className="list-disc pl-6 mb-4">
-                <li>Adobe Creative Suite: Photoshop, Illustrator, InDesign</li>
-                <li>Video tools: Adobe Premiere Pro, After Effects, Final Cut Pro, Corona Pro</li>
-                <li>Optional: Blender, Figma, Adobe</li>
+                {selectedJob.skills.map((skill, index) => (
+                  <li key={index}>{skill}</li>
+                ))}
+                <li>Strong communication and collaboration skills</li>
+                <li>Problem-solving mindset and attention to detail</li>
               </ul>
               
-              <h4 className="font-semibold mt-4">Portfolio:</h4>
+              <h4 className="font-semibold mt-4">Responsibilities:</h4>
               <ul className="list-disc pl-6 mb-4">
-                <li>A strong design portfolio showcasing both graphic and video work is mandatory</li>
+                <li>Work with cross-functional teams to deliver high-quality products</li>
+                <li>Stay up-to-date with industry trends and best practices</li>
+                <li>Participate in design reviews and provide constructive feedback</li>
+                <li>Contribute to the continuous improvement of our processes</li>
               </ul>
               
-              <h4 className="font-semibold mt-4">Soft Skills:</h4>
+              <h4 className="font-semibold mt-4">Benefits:</h4>
               <ul className="list-disc pl-6">
-                <li>Creative thinking and attention to detail</li>
-                <li>Excellent communication and project management skills</li>
-                <li>Ability to take feedback and work on tight deadlines</li>
+                <li>Competitive salary and benefits package</li>
+                <li>Flexible work arrangements</li>
+                <li>Professional development opportunities</li>
+                <li>Collaborative and inclusive work environment</li>
               </ul>
             </div>
           </div>

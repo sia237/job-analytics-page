@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 const Navbar = () => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
   return (
     <header className="bg-blue-600 text-white">
       <div className="container mx-auto px-4 py-4 flex flex-col md:flex-row items-center justify-between max-w-7xl">
@@ -54,6 +56,35 @@ const Navbar = () => {
             </Link>
           </div>
         </div>
+      </div>
+      
+      {/* Mobile menu */}
+      <div className="md:hidden border-t border-blue-500">
+        <button 
+          className="w-full py-2 flex justify-center items-center"
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+        >
+          <span className="mr-2">{isMenuOpen ? "Close" : "Menu"}</span>
+          <svg 
+            className={`w-4 h-4 transition-transform ${isMenuOpen ? 'transform rotate-180' : ''}`} 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24" 
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isMenuOpen ? "M5 15l7-7 7 7" : "M19 9l-7 7-7-7"} />
+          </svg>
+        </button>
+        
+        {isMenuOpen && (
+          <nav className="px-4 py-2 flex flex-col space-y-2 bg-blue-700">
+            <Link to="/" className="py-2">Jobs</Link>
+            <Link to="/companies" className="py-2">Companies</Link>
+            <Link to="/analytics" className="py-2">Analytics</Link>
+            <Link to="/resume-builder" className="py-2">Create resume</Link>
+            <Link to="/profile" className="py-2">Profile</Link>
+          </nav>
+        )}
       </div>
     </header>
   );
