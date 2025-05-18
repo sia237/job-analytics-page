@@ -11,6 +11,7 @@ import NotFound from "./pages/NotFound";
 import Companies from "./pages/Companies";
 import Analytics from "./pages/Analytics";
 
+// Initialize React Query
 const queryClient = new QueryClient();
 
 const App = () => (
