@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Filter } from "lucide-react";
 
 interface JobFiltersProps {
-  onFilterChange: (filters: any) => void;
+  onFilterChange: (filters: FilterState) => void;
 }
 
 interface FilterState {
@@ -71,8 +71,8 @@ const JobFilters = ({ onFilterChange }: JobFiltersProps) => {
     setFilters(prev => ({
       ...prev,
       [category]: {
-        ...prev[category],
-        [name]: !prev[category][name]
+        ...(prev[category] as Record<string, boolean>),
+        [name]: !(prev[category] as Record<string, boolean>)[name]
       }
     }));
   };
