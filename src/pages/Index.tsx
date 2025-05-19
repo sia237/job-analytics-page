@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, FormEvent } from "react";
 import Navbar from "../components/Navbar";
 import JobCategories from "../components/JobCategories";
 import JobsList from "../components/JobsList";
@@ -162,9 +162,10 @@ const Index = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [filteredJobs, setFilteredJobs] = useState<Job[]>(MOCK_JOBS);
+  const [activeFilters, setActiveFilters] = useState<any>({});
   const jobsPerPage = 6;
 
-  // Apply filters
+  // Apply filters and search
   useEffect(() => {
     let result = MOCK_JOBS;
     
@@ -224,9 +225,46 @@ const Index = () => {
       }
     }
     
+    // Apply advanced filters
+    if (Object.keys(activeFilters).length > 0) {
+      // Filter by working schedule
+      if (activeFilters.workingSchedule) {
+        const scheduleFilters = Object.entries(activeFilters.workingSchedule)
+          .filter(([_, isActive]) => isActive)
+          .map(([key]) => key.toLowerCase());
+        
+        if (scheduleFilters.length > 0) {
+          result = result.filter(job => {
+            const jobType = job.type.toLowerCase();
+            return scheduleFilters.some(filter => {
+              if (filter === "fulltime") return jobType.includes("full-time");
+              if (filter === "parttime") return jobType.includes("part-time");
+              if (filter === "contract") return jobType.includes("contract");
+              return false;
+            });
+          });
+        }
+      }
+      
+      // Filter by skills
+      if (activeFilters.skills) {
+        const skillFilters = Object.entries(activeFilters.skills)
+          .filter(([_, isActive]) => isActive)
+          .map(([key]) => key.toLowerCase());
+        
+        if (skillFilters.length > 0) {
+          result = result.filter(job => 
+            job.skills.some(skill => 
+              skillFilters.some(filter => skill.toLowerCase().includes(filter))
+            )
+          );
+        }
+      }
+    }
+    
     setFilteredJobs(result);
     setCurrentPage(1); // Reset to first page when filters change
-  }, [searchTerm, selectedCategory]);
+  }, [searchTerm, selectedCategory, activeFilters]);
 
   const indexOfLastJob = currentPage * jobsPerPage;
   const indexOfFirstJob = indexOfLastJob - jobsPerPage;
@@ -242,9 +280,13 @@ const Index = () => {
     setSelectedCategory(category);
   };
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = (e: FormEvent) => {
     e.preventDefault();
     // Search already applied via useEffect
+  };
+  
+  const handleFilterChange = (filters: any) => {
+    setActiveFilters(filters);
   };
 
   return (
@@ -259,7 +301,7 @@ const Index = () => {
                 Learn more
               </button>
             </div>
-            <JobFilters />
+            <JobFilters onFilterChange={handleFilterChange} />
           </div>
           
           <div className="w-full md:w-3/4">

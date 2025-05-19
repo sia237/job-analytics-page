@@ -11,6 +11,7 @@ const ResumeUpload = () => {
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isParsing, setIsParsing] = useState(false);
+  const [resumeData, setResumeData] = useState<any>(null);
   const { toast } = useToast();
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
@@ -69,7 +70,7 @@ const ResumeUpload = () => {
       // Upload file to Supabase Storage
       const fileExt = file.name.split('.').pop();
       const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
-      const filePath = `resumes/${fileName}`;
+      const filePath = `${fileName}`;
       
       const { error: uploadError, data } = await supabase.storage
         .from('user-resumes')
@@ -91,11 +92,15 @@ const ResumeUpload = () => {
         title: "File uploaded successfully",
         description: `${file.name} has been uploaded.`,
       });
-    } catch (error) {
+
+      // Auto-parse the resume after successful upload
+      await handleParseResume(publicUrl);
+      
+    } catch (error: any) {
       console.error('Error uploading resume:', error);
       toast({
         title: "Upload failed",
-        description: "There was an error uploading your resume. Please try again.",
+        description: error.message || "There was an error uploading your resume. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -109,9 +114,16 @@ const ResumeUpload = () => {
     try {
       // Extract file path from URL
       const pathMatch = fileUrl.match(/user-resumes\/(.+)$/);
-      if (!pathMatch) throw new Error('Invalid file path');
+      let filePath = "";
       
-      const filePath = pathMatch[1];
+      if (pathMatch && pathMatch[1]) {
+        filePath = pathMatch[1];
+      } else {
+        // Alternative way to extract filename
+        filePath = fileUrl.split('/').pop() || "";
+      }
+      
+      if (!filePath) throw new Error('Invalid file path');
       
       // Delete file from Supabase Storage
       const { error } = await supabase.storage
@@ -122,37 +134,39 @@ const ResumeUpload = () => {
       
       setUploadedFile(null);
       setFileUrl(null);
+      setResumeData(null);
       
       toast({
         title: "File deleted",
         description: "Your resume has been deleted.",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting resume:', error);
       toast({
         title: "Delete failed",
-        description: "There was an error deleting your resume. Please try again.",
+        description: error.message || "There was an error deleting your resume. Please try again.",
         variant: "destructive"
       });
     }
   };
 
-  const handleParseResume = async () => {
-    if (!fileUrl) return;
+  const handleParseResume = async (url: string = "") => {
+    const resumeUrl = url || fileUrl;
+    if (!resumeUrl) return;
     
     setIsParsing(true);
     
     try {
       // Call Supabase Edge Function to parse resume
       const { data, error } = await supabase.functions.invoke('parse-resume', {
-        body: { fileUrl }
+        body: { fileUrl: resumeUrl }
       });
       
       if (error) throw error;
       
       if (data && data.success) {
-        // Store the parsed data or update the UI
-        console.log('Parsed resume data:', data.data);
+        // Store the parsed data
+        setResumeData(data.data);
         
         toast({
           title: "Resume parsed successfully",
@@ -160,16 +174,16 @@ const ResumeUpload = () => {
         });
         
         // Here you would typically update state/context with the parsed data
-        // or dispatch actions to update the UI with the parsed information
+        console.log('Parsed resume data:', data.data);
       } else {
         throw new Error('Failed to parse resume');
       }
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error parsing resume:', error);
       toast({
         title: "Parsing failed",
-        description: "There was an error parsing your resume. Please try again.",
+        description: error.message || "There was an error parsing your resume. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -201,7 +215,7 @@ const ResumeUpload = () => {
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={handleParseResume}
+                onClick={() => handleParseResume()}
                 disabled={isParsing}
                 className="border-blue-500 text-blue-500 hover:bg-blue-50"
               >
@@ -225,6 +239,23 @@ const ResumeUpload = () => {
               </Button>
             </div>
           </div>
+          
+          {resumeData && (
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <h4 className="text-sm font-medium mb-2">Parsed information:</h4>
+              <div className="text-xs text-gray-600">
+                {resumeData.personalDetails && (
+                  <p><strong>Name:</strong> {resumeData.personalDetails.fullName}</p>
+                )}
+                {resumeData.skills && (
+                  <p><strong>Skills:</strong> {resumeData.skills.join(', ')}</p>
+                )}
+                <p className="text-blue-500 mt-1 cursor-pointer">
+                  See all extracted information in profile sections
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       ) : (
         <div
