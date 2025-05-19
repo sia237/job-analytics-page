@@ -3,15 +3,13 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Upload, Trash2, FileText } from "lucide-react";
+import { Loader2, Upload, Trash2, FileText, Download } from "lucide-react";
 
 const ResumeUpload = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [isParsing, setIsParsing] = useState(false);
-  const [resumeData, setResumeData] = useState<any>(null);
   const { toast } = useToast();
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
@@ -92,9 +90,6 @@ const ResumeUpload = () => {
         title: "File uploaded successfully",
         description: `${file.name} has been uploaded.`,
       });
-
-      // Auto-parse the resume after successful upload
-      await handleParseResume(publicUrl);
       
     } catch (error: any) {
       console.error('Error uploading resume:', error);
@@ -113,15 +108,8 @@ const ResumeUpload = () => {
     
     try {
       // Extract file path from URL
-      const pathMatch = fileUrl.match(/user-resumes\/(.+)$/);
-      let filePath = "";
-      
-      if (pathMatch && pathMatch[1]) {
-        filePath = pathMatch[1];
-      } else {
-        // Alternative way to extract filename
-        filePath = fileUrl.split('/').pop() || "";
-      }
+      const urlParts = fileUrl.split('/');
+      const filePath = urlParts[urlParts.length - 1];
       
       if (!filePath) throw new Error('Invalid file path');
       
@@ -134,7 +122,6 @@ const ResumeUpload = () => {
       
       setUploadedFile(null);
       setFileUrl(null);
-      setResumeData(null);
       
       toast({
         title: "File deleted",
@@ -150,45 +137,21 @@ const ResumeUpload = () => {
     }
   };
 
-  const handleParseResume = async (url: string = "") => {
-    const resumeUrl = url || fileUrl;
-    if (!resumeUrl) return;
+  const handleDownload = () => {
+    if (!fileUrl) return;
     
-    setIsParsing(true);
+    // Create an anchor element and trigger download
+    const link = document.createElement('a');
+    link.href = fileUrl;
+    link.download = uploadedFile?.name || 'resume';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
     
-    try {
-      // Call Supabase Edge Function to parse resume
-      const { data, error } = await supabase.functions.invoke('parse-resume', {
-        body: { fileUrl: resumeUrl }
-      });
-      
-      if (error) throw error;
-      
-      if (data && data.success) {
-        // Store the parsed data
-        setResumeData(data.data);
-        
-        toast({
-          title: "Resume parsed successfully",
-          description: "Your profile has been updated with the resume information.",
-        });
-        
-        // Here you would typically update state/context with the parsed data
-        console.log('Parsed resume data:', data.data);
-      } else {
-        throw new Error('Failed to parse resume');
-      }
-      
-    } catch (error: any) {
-      console.error('Error parsing resume:', error);
-      toast({
-        title: "Parsing failed",
-        description: error.message || "There was an error parsing your resume. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsParsing(false);
-    }
+    toast({
+      title: "Download started",
+      description: "Your resume is being downloaded.",
+    });
   };
 
   return (
@@ -215,18 +178,11 @@ const ResumeUpload = () => {
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={() => handleParseResume()}
-                disabled={isParsing}
+                onClick={handleDownload}
                 className="border-blue-500 text-blue-500 hover:bg-blue-50"
               >
-                {isParsing ? (
-                  <>
-                    <Loader2 size={16} className="mr-2 animate-spin" />
-                    Parsing...
-                  </>
-                ) : (
-                  'Parse'
-                )}
+                <Download size={16} className="mr-2" />
+                Download
               </Button>
               <Button 
                 variant="outline" 
@@ -239,23 +195,6 @@ const ResumeUpload = () => {
               </Button>
             </div>
           </div>
-          
-          {resumeData && (
-            <div className="mt-4 pt-4 border-t border-gray-200">
-              <h4 className="text-sm font-medium mb-2">Parsed information:</h4>
-              <div className="text-xs text-gray-600">
-                {resumeData.personalDetails && (
-                  <p><strong>Name:</strong> {resumeData.personalDetails.fullName}</p>
-                )}
-                {resumeData.skills && (
-                  <p><strong>Skills:</strong> {resumeData.skills.join(', ')}</p>
-                )}
-                <p className="text-blue-500 mt-1 cursor-pointer">
-                  See all extracted information in profile sections
-                </p>
-              </div>
-            </div>
-          )}
         </div>
       ) : (
         <div
