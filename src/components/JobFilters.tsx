@@ -7,10 +7,20 @@ interface JobFiltersProps {
   onFilterChange: (filters: any) => void;
 }
 
+interface FilterState {
+  workingSchedule: Record<string, boolean>;
+  employmentType: Record<string, boolean>;
+  companyType: Record<string, boolean>;
+  industry: Record<string, boolean>;
+  education: Record<string, boolean>;
+  distance: string;
+  skills: Record<string, boolean>;
+}
+
 const JobFilters = ({ onFilterChange }: JobFiltersProps) => {
   const [expandedSections, setExpandedSections] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<FilterState>({
     workingSchedule: {
       fullTime: false,
       partTime: false,
@@ -57,7 +67,7 @@ const JobFilters = ({ onFilterChange }: JobFiltersProps) => {
     );
   };
 
-  const handleCheckboxChange = (category: keyof typeof filters, name: string) => {
+  const handleCheckboxChange = (category: keyof FilterState, name: string) => {
     setFilters(prev => ({
       ...prev,
       [category]: {
