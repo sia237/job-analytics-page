@@ -29,6 +29,8 @@ const ResumeDetailDialog = ({
   const [formData, setFormData] = useState<Record<string, any>>(initialData);
   const [selectedJobRoles, setSelectedJobRoles] = useState<string[]>(formData.jobRoles || []);
   const [selectedLocations, setSelectedLocations] = useState<string[]>(formData.locations || []);
+  const [selectedSkills, setSelectedSkills] = useState<string[]>(formData.skills || []);
+  const [selectedAchievements, setSelectedAchievements] = useState<string[]>(formData.achievements || []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -67,6 +69,34 @@ const ResumeDetailDialog = ({
     setFormData((prev) => ({ ...prev, locations: newLocations }));
   };
 
+  const addSkill = (skill: string) => {
+    if (skill && !selectedSkills.includes(skill)) {
+      const newSkills = [...selectedSkills, skill];
+      setSelectedSkills(newSkills);
+      setFormData((prev) => ({ ...prev, skills: newSkills }));
+    }
+  };
+
+  const removeSkill = (skill: string) => {
+    const newSkills = selectedSkills.filter(s => s !== skill);
+    setSelectedSkills(newSkills);
+    setFormData((prev) => ({ ...prev, skills: newSkills }));
+  };
+
+  const addAchievement = (achievement: string) => {
+    if (achievement && !selectedAchievements.includes(achievement)) {
+      const newAchievements = [...selectedAchievements, achievement];
+      setSelectedAchievements(newAchievements);
+      setFormData((prev) => ({ ...prev, achievements: newAchievements }));
+    }
+  };
+
+  const removeAchievement = (achievement: string) => {
+    const newAchievements = selectedAchievements.filter(a => a !== achievement);
+    setSelectedAchievements(newAchievements);
+    setFormData((prev) => ({ ...prev, achievements: newAchievements }));
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSave(formData);
@@ -76,6 +106,508 @@ const ResumeDetailDialog = ({
       description: `Your ${title.toLowerCase()} information has been saved.`,
     });
   };
+
+  const renderKeySkillsForm = () => (
+    <form onSubmit={handleSubmit} className="space-y-6 mt-4">
+      <div className="text-sm text-gray-600 mb-4">
+        Key skill lets you highlight your core abilities and expertise, helping employers quickly 
+        identify your strengths and match you with the right job opportunities.
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-sm font-medium">Skill</Label>
+        <div className="flex flex-wrap gap-2 mb-2">
+          {selectedSkills.map((skill) => (
+            <span key={skill} className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm flex items-center gap-1">
+              {skill}
+              <X className="w-3 h-3 cursor-pointer" onClick={() => removeSkill(skill)} />
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-sm font-medium">Add Skills*</Label>
+        <Input
+          placeholder="Add Skills"
+          onKeyPress={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              addSkill(e.currentTarget.value);
+              e.currentTarget.value = '';
+            }
+          }}
+        />
+      </div>
+
+      <DialogFooter>
+        <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          Cancel
+        </Button>
+        <Button type="submit" className="bg-blue-600 hover:bg-blue-700">Save</Button>
+      </DialogFooter>
+    </form>
+  );
+
+  const renderLanguagesForm = () => (
+    <form onSubmit={handleSubmit} className="space-y-6 mt-4">
+      <div className="text-sm text-gray-600 mb-4">
+        Languages lets you specify the languages you are proficient in, helping employers assess 
+        your communication skills and match you with roles that require specific language expertise.
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-sm font-medium">Languages Spoken*</Label>
+        <Select onValueChange={(value) => handleSelectChange('languageSpoken', value)}>
+          <SelectTrigger>
+            <SelectValue placeholder="Languages Spoken" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="English">English</SelectItem>
+            <SelectItem value="Hindi">Hindi</SelectItem>
+            <SelectItem value="Regional Languages (Specify)">Regional Languages (Specify)</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-sm font-medium">Proficiency Levels*</Label>
+        <Select onValueChange={(value) => handleSelectChange('proficiencyLevels', value)}>
+          <SelectTrigger>
+            <SelectValue placeholder="Proficiency Levels" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="Read: Basic/Intermediate/Fluent">Read: Basic/Intermediate/Fluent</SelectItem>
+            <SelectItem value="Write: Basic/Intermediate/Fluent">Write: Basic/Intermediate/Fluent</SelectItem>
+            <SelectItem value="Speak: Basic/Intermediate/Fluent">Speak: Basic/Intermediate/Fluent</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <DialogFooter>
+        <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          Cancel
+        </Button>
+        <Button type="submit" className="bg-blue-600 hover:bg-blue-700">Save</Button>
+      </DialogFooter>
+    </form>
+  );
+
+  const renderProfileSummaryForm = () => (
+    <form onSubmit={handleSubmit} className="space-y-6 mt-4">
+      <div className="text-sm text-gray-600 mb-4">
+        Your profile summary should highlight key points from your career and education, your 
+        professional interests, and the kind of career you're looking for. write at least 50 characters 
+        (max. 1000 characters)
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-sm font-medium">Profile Summary*</Label>
+        <Textarea
+          name="profileSummary"
+          placeholder="Profile Summary"
+          value={formData.profileSummary || ""}
+          onChange={handleChange}
+          className="min-h-32"
+        />
+        <div className="text-xs text-gray-500 text-right">
+          Up to 0-1000 characters only
+        </div>
+      </div>
+
+      <DialogFooter>
+        <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          Cancel
+        </Button>
+        <Button type="submit" className="bg-blue-600 hover:bg-blue-700">Save</Button>
+      </DialogFooter>
+    </form>
+  );
+
+  const renderProjectsForm = () => (
+    <form onSubmit={handleSubmit} className="space-y-6 mt-4">
+      <div className="text-sm text-gray-600 mb-4">
+        Projects let you showcase your hands-on experience, highlighting how you've applying your 
+        skills in real-world scenarios and helping employers assess your practical abilities for the 
+        role you're applying for.
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-sm font-medium">Project Name*</Label>
+        <Input
+          name="projectName"
+          placeholder="Project Name"
+          value={formData.projectName || ""}
+          onChange={handleChange}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-sm font-medium">Project Duration*</Label>
+        <div className="flex gap-2 items-center">
+          <Input
+            name="projectStartDate"
+            placeholder="MM/YYYY"
+            value={formData.projectStartDate || ""}
+            onChange={handleChange}
+            className="flex-1"
+          />
+          <span className="text-sm">To</span>
+          <Input
+            name="projectEndDate"
+            placeholder="MM/YYYY"
+            value={formData.projectEndDate || ""}
+            onChange={handleChange}
+            className="flex-1"
+          />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-sm font-medium">Description of what the project was about*</Label>
+        <Textarea
+          name="projectDescription"
+          placeholder="Description of what the project was about"
+          value={formData.projectDescription || ""}
+          onChange={handleChange}
+          className="min-h-24"
+        />
+        <div className="text-xs text-gray-500 text-right">
+          Up to 0-300 characters only
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-sm font-medium">Key Skills used in the Project (Optional)</Label>
+        <Input
+          name="projectSkills"
+          placeholder="Key Skills used in the Project (Optional)"
+          value={formData.projectSkills || ""}
+          onChange={handleChange}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-sm font-medium">Result / Conclusions*</Label>
+        <Input
+          name="projectResult"
+          placeholder="Result / Conclusions"
+          value={formData.projectResult || ""}
+          onChange={handleChange}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-sm font-medium">Project URL (Optional)</Label>
+        <Input
+          name="projectUrl"
+          placeholder="Project URL (Optional)"
+          value={formData.projectUrl || ""}
+          onChange={handleChange}
+        />
+      </div>
+
+      <DialogFooter>
+        <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          Cancel
+        </Button>
+        <Button type="submit" className="bg-blue-600 hover:bg-blue-700">Save</Button>
+      </DialogFooter>
+    </form>
+  );
+
+  const renderAcademicAchievementsForm = () => (
+    <form onSubmit={handleSubmit} className="space-y-6 mt-4">
+      <div className="text-sm text-gray-600 mb-4">
+        Academic achievements are highlighting your educational milestones, honors, and 
+        recognitions that reflect your dedication and excellence in learning.
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-sm font-medium">Education Reference (Optional)</Label>
+        <Input
+          name="educationReference"
+          placeholder="Education Reference (Optional)"
+          value={formData.educationReference || ""}
+          onChange={handleChange}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-sm font-medium">Academic Achievements*</Label>
+        <div className="flex flex-wrap gap-2 mb-2">
+          {selectedAchievements.map((achievement) => (
+            <span key={achievement} className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm flex items-center gap-1">
+              {achievement}
+              <X className="w-3 h-3 cursor-pointer" onClick={() => removeAchievement(achievement)} />
+            </span>
+          ))}
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="text-blue-600 border-blue-600"
+            onClick={() => addAchievement("College topper")}
+          >
+            College topper +
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="text-blue-600 border-blue-600"
+            onClick={() => addAchievement("Department topper")}
+          >
+            Department topper +
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="text-blue-600 border-blue-600"
+            onClick={() => addAchievement("Top 3 in class")}
+          >
+            Top 3 in class +
+          </Button>
+        </div>
+        <div className="flex flex-wrap gap-2 mt-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="text-blue-600 border-blue-600"
+            onClick={() => addAchievement("Top 10 in class")}
+          >
+            Top 10 in class +
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="text-blue-600 border-blue-600"
+            onClick={() => addAchievement("Gold medalist")}
+          >
+            Gold medalist +
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="text-blue-600 border-blue-600"
+            onClick={() => addAchievement("Received scholarship")}
+          >
+            Received scholarship +
+          </Button>
+        </div>
+        <div className="flex flex-wrap gap-2 mt-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="text-blue-600 border-blue-600"
+            onClick={() => addAchievement("All rounder")}
+          >
+            All rounder +
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="text-blue-600 border-blue-600"
+            onClick={() => addAchievement("Other")}
+          >
+            Other +
+          </Button>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-sm font-medium">Received during B.Tech/B.E.*</Label>
+      </div>
+
+      <DialogFooter>
+        <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          Cancel
+        </Button>
+        <Button type="submit" className="bg-blue-600 hover:bg-blue-700">Save</Button>
+      </DialogFooter>
+    </form>
+  );
+
+  const renderEntranceExamForm = () => (
+    <form onSubmit={handleSubmit} className="space-y-6 mt-4">
+      <div className="text-sm text-gray-600 mb-4">
+        Competitive exams are capturing your achievements in exams that demonstrate skills, 
+        knowledge, or qualifications for academic or professional growth.
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-sm font-medium">Exam Name*</Label>
+        <Select onValueChange={(value) => handleSelectChange('examName', value)}>
+          <SelectTrigger>
+            <SelectValue placeholder="Exam Name" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="CAT">CAT</SelectItem>
+            <SelectItem value="XAT">XAT</SelectItem>
+            <SelectItem value="MBA CET">MBA CET</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-sm font-medium">Exam Year*</Label>
+        <Select onValueChange={(value) => handleSelectChange('examYear', value)}>
+          <SelectTrigger>
+            <SelectValue placeholder="Exam Year" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="2024">2024</SelectItem>
+            <SelectItem value="2023">2023</SelectItem>
+            <SelectItem value="2022">2022</SelectItem>
+            <SelectItem value="2021">2021</SelectItem>
+            <SelectItem value="2020">2020</SelectItem>
+            <SelectItem value="2019">2019</SelectItem>
+            <SelectItem value="2018">2018</SelectItem>
+            <SelectItem value="2017">2017</SelectItem>
+            <SelectItem value="2016">2016</SelectItem>
+            <SelectItem value="2015">2015</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-sm font-medium">Score/ Percentile*</Label>
+        <div className="flex gap-2">
+          <Input
+            name="obtainedScore"
+            placeholder="Obtained Score/percentile"
+            value={formData.obtainedScore || ""}
+            onChange={handleChange}
+            className="flex-1"
+          />
+          <Input
+            name="maximumScore"
+            placeholder="Maximum Score/percentile"
+            value={formData.maximumScore || ""}
+            onChange={handleChange}
+            className="flex-1"
+          />
+        </div>
+      </div>
+
+      <DialogFooter>
+        <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          Cancel
+        </Button>
+        <Button type="submit" className="bg-blue-600 hover:bg-blue-700">Save</Button>
+      </DialogFooter>
+    </form>
+  );
+
+  const renderInternshipsForm = () => (
+    <form onSubmit={handleSubmit} className="space-y-6 mt-4">
+      <div className="text-sm text-gray-600 mb-4">
+        Internships allow you to showcase any hands-on work experience you've gained during your 
+        studies, this helps employers recognize your practical skills and potential for the role you're 
+        applying for.
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-sm font-medium">Company Name*</Label>
+        <Input
+          name="companyName"
+          placeholder="Company Name"
+          value={formData.companyName || ""}
+          onChange={handleChange}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-sm font-medium">Internship Role*</Label>
+        <Input
+          name="internshipRole"
+          placeholder="Internship Role"
+          value={formData.internshipRole || ""}
+          onChange={handleChange}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-sm font-medium">Internship Duration*</Label>
+        <div className="flex gap-2 items-center">
+          <Input
+            name="internshipStartDate"
+            placeholder="MM/YYYY"
+            value={formData.internshipStartDate || ""}
+            onChange={handleChange}
+            className="flex-1"
+          />
+          <span className="text-sm">To</span>
+          <Input
+            name="internshipEndDate"
+            placeholder="MM/YYYY"
+            value={formData.internshipEndDate || ""}
+            onChange={handleChange}
+            className="flex-1"
+          />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-sm font-medium">Internship Project Name*</Label>
+        <Input
+          name="internshipProjectName"
+          placeholder="Internship Project Name"
+          value={formData.internshipProjectName || ""}
+          onChange={handleChange}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-sm font-medium">Describe what you did at the Internship*</Label>
+        <Textarea
+          name="internshipDescription"
+          placeholder="Describe what you did at the Internship"
+          value={formData.internshipDescription || ""}
+          onChange={handleChange}
+          className="min-h-24"
+        />
+        <div className="text-xs text-gray-500 text-right">
+          Up to 0-300 characters only
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-sm font-medium">Used in Internship</Label>
+        <Input
+          name="internshipSkills"
+          placeholder="Used in Internship"
+          value={formData.internshipSkills || ""}
+          onChange={handleChange}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-sm font-medium">Internship Project URL (Optional)</Label>
+        <Input
+          name="internshipProjectUrl"
+          placeholder="Internship Project URL (Optional)"
+          value={formData.internshipProjectUrl || ""}
+          onChange={handleChange}
+        />
+      </div>
+
+      <DialogFooter>
+        <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          Cancel
+        </Button>
+        <Button type="submit" className="bg-blue-600 hover:bg-blue-700">Save</Button>
+      </DialogFooter>
+    </form>
+  );
 
   const renderCareerPreferencesForm = () => (
     <form onSubmit={handleSubmit} className="space-y-6 mt-4">
@@ -502,16 +1034,6 @@ const ResumeDetailDialog = ({
             { name: "phone", label: "Phone Number", type: "tel", required: true, placeholder: "+1 555-123-4567" },
             { name: "address", label: "Address", type: "text", placeholder: "New York, USA" },
           ];
-        case "keySkills":
-          return [
-            { name: "skills", label: "Skills (comma separated)", type: "textarea", required: true, placeholder: "JavaScript, React, Node.js, CSS" },
-          ];
-        case "languages":
-          return [
-            { name: "language", label: "Language", type: "text", required: true, placeholder: "English" },
-            { name: "proficiency", label: "Proficiency Level", type: "text", required: true, placeholder: "Native, Fluent, Intermediate, Basic" },
-          ];
-        case "internships":
         case "employment":
           return [
             { name: "company", label: "Company", type: "text", required: true, placeholder: "ABC Corporation" },
@@ -520,37 +1042,12 @@ const ResumeDetailDialog = ({
             { name: "endDate", label: "End Date", type: "date" },
             { name: "description", label: "Description", type: "textarea", placeholder: "Describe your responsibilities and achievements" },
           ];
-        case "projects":
-          return [
-            { name: "title", label: "Project Title", type: "text", required: true, placeholder: "E-commerce Website" },
-            { name: "technologies", label: "Technologies Used", type: "text", required: true, placeholder: "React, Node.js, MongoDB" },
-            { name: "startDate", label: "Start Date", type: "date" },
-            { name: "endDate", label: "End Date", type: "date" },
-            { name: "description", label: "Description", type: "textarea", required: true, placeholder: "Describe your project and your role" },
-          ];
-        case "summary":
-          return [
-            { name: "summary", label: "Profile Summary", type: "textarea", required: true, placeholder: "A brief overview of your professional background and goals" },
-          ];
         case "accomplishments":
           return [
             { name: "title", label: "Title", type: "text", required: true, placeholder: "Award/Achievement" },
             { name: "issuer", label: "Issuer/Organization", type: "text", placeholder: "Organization Name" },
             { name: "date", label: "Date", type: "date" },
             { name: "description", label: "Description", type: "textarea", placeholder: "Describe your accomplishment" },
-          ];
-        case "exams":
-          return [
-            { name: "examName", label: "Exam Name", type: "text", required: true, placeholder: "GRE, GMAT, etc." },
-            { name: "score", label: "Score", type: "text", required: true, placeholder: "320/340" },
-            { name: "date", label: "Date", type: "date" },
-          ];
-        case "academicAchievements":
-          return [
-            { name: "title", label: "Achievement Title", type: "text", required: true, placeholder: "Dean's List" },
-            { name: "institution", label: "Institution", type: "text", required: true, placeholder: "University of Technology" },
-            { name: "date", label: "Date", type: "date" },
-            { name: "description", label: "Description", type: "textarea", placeholder: "Describe your academic achievement" },
           ];
         default:
           return [];
@@ -610,7 +1107,14 @@ const ResumeDetailDialog = ({
         
         {type === "careerPreferences" && renderCareerPreferencesForm()}
         {type === "education" && renderEducationForm()}
-        {type !== "careerPreferences" && type !== "education" && renderOtherForms()}
+        {type === "keySkills" && renderKeySkillsForm()}
+        {type === "languages" && renderLanguagesForm()}
+        {type === "summary" && renderProfileSummaryForm()}
+        {type === "projects" && renderProjectsForm()}
+        {type === "academicAchievements" && renderAcademicAchievementsForm()}
+        {type === "exams" && renderEntranceExamForm()}
+        {type === "internships" && renderInternshipsForm()}
+        {!["careerPreferences", "education", "keySkills", "languages", "summary", "projects", "academicAchievements", "exams", "internships"].includes(type) && renderOtherForms()}
       </DialogContent>
     </Dialog>
   );
