@@ -5,6 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { X } from "lucide-react";
 
@@ -31,6 +36,8 @@ const ResumeDetailDialog = ({
   const [selectedLocations, setSelectedLocations] = useState<string[]>(formData.locations || []);
   const [selectedSkills, setSelectedSkills] = useState<string[]>(formData.skills || []);
   const [selectedAchievements, setSelectedAchievements] = useState<string[]>(formData.achievements || []);
+  const [accomplishmentSlide, setAccomplishmentSlide] = useState(0);
+  const [dateOfBirth, setDateOfBirth] = useState<Date | undefined>(formData.dateOfBirth || undefined);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -105,6 +112,448 @@ const ResumeDetailDialog = ({
       title: "Section updated",
       description: `Your ${title.toLowerCase()} information has been saved.`,
     });
+  };
+
+  const renderPersonalDetailsForm = () => (
+    <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+      <div className="text-sm text-gray-600 mb-4">
+        Personal details are core essential information like name, contact details, and 
+        address that helps employers reach and get an overview about you.
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-sm font-medium">Full Name*</Label>
+        <Input
+          name="fullName"
+          placeholder="Full Name"
+          value={formData.fullName || ""}
+          onChange={handleChange}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-sm font-medium">Date of Birth*</Label>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className={cn(
+                "w-full justify-start text-left font-normal",
+                !dateOfBirth && "text-muted-foreground"
+              )}
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {dateOfBirth ? format(dateOfBirth, "PPP") : <span>Pick a date</span>}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="single"
+              selected={dateOfBirth}
+              onSelect={(date) => {
+                setDateOfBirth(date);
+                setFormData((prev) => ({ ...prev, dateOfBirth: date }));
+              }}
+              disabled={(date) =>
+                date > new Date() || date < new Date("1900-01-01")
+              }
+              initialFocus
+              className={cn("p-3 pointer-events-auto")}
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-sm font-medium">Gender*</Label>
+        <Select onValueChange={(value) => handleSelectChange('gender', value)}>
+          <SelectTrigger>
+            <SelectValue placeholder="Male" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="male">Male</SelectItem>
+            <SelectItem value="female">Female</SelectItem>
+            <SelectItem value="other">Other</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-sm font-medium">Marital Status</Label>
+        <div className="flex gap-4">
+          <label className="flex items-center gap-2">
+            <input 
+              type="radio" 
+              name="maritalStatus" 
+              value="married"
+              checked={formData.maritalStatus === 'married'}
+              onChange={handleChange}
+            />
+            <span>Married</span>
+          </label>
+          <label className="flex items-center gap-2">
+            <input 
+              type="radio" 
+              name="maritalStatus" 
+              value="unmarried"
+              checked={formData.maritalStatus === 'unmarried'}
+              onChange={handleChange}
+            />
+            <span>Unmarried</span>
+          </label>
+          <label className="flex items-center gap-2">
+            <input 
+              type="radio" 
+              name="maritalStatus" 
+              value="divorced"
+              checked={formData.maritalStatus === 'divorced'}
+              onChange={handleChange}
+            />
+            <span>Divorced</span>
+          </label>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <Label className="text-sm font-medium">Contact Information:</Label>
+        
+        <div className="space-y-2">
+          <Label className="text-sm font-medium">Email Address*</Label>
+          <Input
+            name="email"
+            type="email"
+            placeholder="Email Address"
+            value={formData.email || ""}
+            onChange={handleChange}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label className="text-sm font-medium">Phone No.*</Label>
+          <Input
+            name="phone"
+            placeholder="Phone No."
+            value={formData.phone || ""}
+            onChange={handleChange}
+          />
+        </div>
+      </div>
+
+      <DialogFooter>
+        <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          Cancel
+        </Button>
+        <Button type="submit" className="bg-blue-600 hover:bg-blue-700">Save</Button>
+      </DialogFooter>
+    </form>
+  );
+
+  const renderEmploymentHistoryForm = () => (
+    <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+      <div className="text-sm text-gray-600 mb-4">
+        Employment History is detailing your professional journey by listing roles, responsibilities, and 
+        achievements, showcasing your experience and career growth.
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-sm font-medium">Enter Total Work Experience*</Label>
+        <div className="flex gap-2">
+          <Select onValueChange={(value) => handleSelectChange('experienceMonths', value)}>
+            <SelectTrigger className="w-32">
+              <SelectValue placeholder="Months" />
+            </SelectTrigger>
+            <SelectContent>
+              {Array.from({ length: 12 }, (_, i) => (
+                <SelectItem key={i} value={i.toString()}>{i} Months</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select onValueChange={(value) => handleSelectChange('experienceYears', value)}>
+            <SelectTrigger className="w-32">
+              <SelectValue placeholder="Years" />
+            </SelectTrigger>
+            <SelectContent>
+              {Array.from({ length: 50 }, (_, i) => (
+                <SelectItem key={i} value={i.toString()}>{i} Years</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-sm font-medium">Company Name*</Label>
+        <Select onValueChange={(value) => handleSelectChange('companyName', value)}>
+          <SelectTrigger>
+            <SelectValue placeholder="Company Name" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="Amazon">Amazon</SelectItem>
+            <SelectItem value="IBM">IBM</SelectItem>
+            <SelectItem value="Google">Google</SelectItem>
+            <SelectItem value="Microsoft">Microsoft</SelectItem>
+            <SelectItem value="Apple">Apple</SelectItem>
+            <SelectItem value="Meta">Meta</SelectItem>
+            <SelectItem value="Netflix">Netflix</SelectItem>
+            <SelectItem value="Tesla">Tesla</SelectItem>
+            <SelectItem value="Uber">Uber</SelectItem>
+            <SelectItem value="Airbnb">Airbnb</SelectItem>
+            <SelectItem value="Other">Other</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-sm font-medium">Job Title/Position Held*</Label>
+        <Input
+          name="jobTitle"
+          placeholder="Job Title/Position Held"
+          value={formData.jobTitle || ""}
+          onChange={handleChange}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-sm font-medium">Duration of Employment*</Label>
+        <div className="flex gap-2 items-center">
+          <Input
+            name="startDate"
+            placeholder="MM/YYYY"
+            value={formData.startDate || ""}
+            onChange={handleChange}
+            className="flex-1"
+          />
+          <span className="text-sm">To</span>
+          <Input
+            name="endDate"
+            placeholder="MM/YYYY"
+            value={formData.endDate || ""}
+            onChange={handleChange}
+            className="flex-1"
+          />
+        </div>
+        <label className="flex items-center gap-2 mt-2">
+          <input 
+            type="checkbox" 
+            name="currentlyWorking" 
+            checked={formData.currentlyWorking || false}
+            onChange={handleChange}
+          />
+          <span className="text-sm">I currently work here</span>
+        </label>
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-sm font-medium">Key Achievements*</Label>
+        <Input
+          name="keyAchievements"
+          placeholder="Key Achievements"
+          value={formData.keyAchievements || ""}
+          onChange={handleChange}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-sm font-medium">Annual Salary*</Label>
+        <div className="flex gap-2">
+          <span className="flex items-center text-gray-500">₹</span>
+          <Input
+            name="annualSalary"
+            placeholder="Annual Salary"
+            value={formData.annualSalary || ""}
+            onChange={handleChange}
+            className="flex-1"
+          />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-sm font-medium">Role Description*</Label>
+        <div className="text-xs text-gray-500 mb-1">Describe what you did at work</div>
+        <Textarea
+          name="roleDescription"
+          placeholder="Role Description"
+          value={formData.roleDescription || ""}
+          onChange={handleChange}
+          className="min-h-24"
+        />
+        <div className="text-xs text-gray-500 text-right">
+          Up to 0-300 characters only
+        </div>
+      </div>
+
+      <DialogFooter>
+        <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          Cancel
+        </Button>
+        <Button type="submit" className="bg-blue-600 hover:bg-blue-700">Save</Button>
+      </DialogFooter>
+    </form>
+  );
+
+  const renderAccomplishmentsForm = () => {
+    const slides = [
+      {
+        title: "Committees / Clubs & Extracurricular",
+        fields: [
+          { name: "clubName", label: "Club/Committee/ Activity Name*", type: "text" },
+          { name: "positionHeld", label: "Position Held At*", type: "select", options: ["President", "Vice President", "Secretary", "Treasurer", "Member"] },
+          { name: "educationReference", label: "Education Reference (Optional)", type: "text" },
+          { name: "duration", label: "Duration*", type: "dateRange" },
+          { name: "responsibilities", label: "Responsibilities and Contributions*", type: "textarea" }
+        ]
+      },
+      {
+        title: "Awards and Recognitions", 
+        fields: [
+          { name: "description", label: "Description*", type: "textarea" }
+        ]
+      },
+      {
+        title: "Certifications",
+        fields: [
+          { name: "certificationName", label: "Certification Name*", type: "text" },
+          { name: "certificationId", label: "Certification ID*", type: "text" },
+          { name: "certificationUrl", label: "Certification URL*", type: "text" },
+          { name: "certificationValidity", label: "Certification validity*", type: "text" }
+        ]
+      }
+    ];
+
+    const currentSlide = slides[accomplishmentSlide];
+
+    return (
+      <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+        <div className="text-sm text-gray-600 mb-4">
+          Accomplishments highlight your achievements, showcasing how you're excelling in your field 
+          and adding value to your professional profile.
+        </div>
+
+        <div className="flex justify-center mb-6">
+          <div className="flex space-x-2">
+            {slides.map((_, index) => (
+              <div
+                key={index}
+                className={`h-2 w-8 rounded-full ${
+                  index === accomplishmentSlide ? 'bg-blue-600' : 'bg-gray-300'
+                }`}
+              />
+            ))}
+          </div>
+        </div>
+
+        <h3 className="text-lg font-medium mb-4">{currentSlide.title}</h3>
+
+        {currentSlide.fields.map((field) => (
+          <div key={field.name} className="space-y-2">
+            <Label className="text-sm font-medium">{field.label}</Label>
+            
+            {field.type === "text" && (
+              <Input
+                name={field.name}
+                placeholder={field.label.replace('*', '')}
+                value={formData[field.name] || ""}
+                onChange={handleChange}
+              />
+            )}
+            
+            {field.type === "select" && (
+              <Select onValueChange={(value) => handleSelectChange(field.name, value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder={field.label.replace('*', '')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {field.options?.map((option) => (
+                    <SelectItem key={option} value={option}>{option}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+            
+            {field.type === "dateRange" && (
+              <div className="flex gap-2 items-center">
+                <Input
+                  name={`${field.name}Start`}
+                  placeholder="MM/YYYY"
+                  value={formData[`${field.name}Start`] || ""}
+                  onChange={handleChange}
+                  className="flex-1"
+                />
+                <span className="text-sm">To</span>
+                <Input
+                  name={`${field.name}End`}
+                  placeholder="MM/YYYY"
+                  value={formData[`${field.name}End`] || ""}
+                  onChange={handleChange}
+                  className="flex-1"
+                />
+              </div>
+            )}
+            
+            {field.type === "textarea" && (
+              <>
+                <Textarea
+                  name={field.name}
+                  placeholder={field.label.replace('*', '')}
+                  value={formData[field.name] || ""}
+                  onChange={handleChange}
+                  className="min-h-32"
+                />
+                <div className="text-xs text-gray-500 text-right">
+                  Up to 0-1000 characters only
+                </div>
+              </>
+            )}
+          </div>
+        ))}
+
+        {accomplishmentSlide === 2 && (
+          <div className="space-y-2">
+            <label className="flex items-center gap-2">
+              <input 
+                type="checkbox" 
+                name="certificationNoExpiry" 
+                checked={formData.certificationNoExpiry || false}
+                onChange={handleChange}
+              />
+              <span className="text-sm">This certification does not expire</span>
+            </label>
+          </div>
+        )}
+
+        <DialogFooter className="flex justify-between">
+          <div className="flex gap-2">
+            {accomplishmentSlide > 0 && (
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setAccomplishmentSlide(accomplishmentSlide - 1)}
+              >
+                Back
+              </Button>
+            )}
+          </div>
+          <div className="flex gap-2">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            {accomplishmentSlide < slides.length - 1 ? (
+              <Button 
+                type="button" 
+                className="bg-blue-600 hover:bg-blue-700"
+                onClick={() => setAccomplishmentSlide(accomplishmentSlide + 1)}
+              >
+                NEXT
+              </Button>
+            ) : (
+              <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
+                Save
+              </Button>
+            )}
+          </div>
+        </DialogFooter>
+      </form>
+    );
   };
 
   const renderKeySkillsForm = () => (
@@ -464,16 +913,12 @@ const ResumeDetailDialog = ({
             <SelectValue placeholder="Exam Year" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="2024">2024</SelectItem>
-            <SelectItem value="2023">2023</SelectItem>
-            <SelectItem value="2022">2022</SelectItem>
-            <SelectItem value="2021">2021</SelectItem>
-            <SelectItem value="2020">2020</SelectItem>
-            <SelectItem value="2019">2019</SelectItem>
-            <SelectItem value="2018">2018</SelectItem>
-            <SelectItem value="2017">2017</SelectItem>
-            <SelectItem value="2016">2016</SelectItem>
-            <SelectItem value="2015">2015</SelectItem>
+            {Array.from({ length: 10 }, (_, i) => {
+              const year = new Date().getFullYear() - i;
+              return (
+                <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
+              );
+            })}
           </SelectContent>
         </Select>
       </div>
@@ -1105,6 +1550,9 @@ const ResumeDetailDialog = ({
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
         
+        {type === "personalDetails" && renderPersonalDetailsForm()}
+        {type === "employment" && renderEmploymentHistoryForm()}
+        {type === "accomplishments" && renderAccomplishmentsForm()}
         {type === "careerPreferences" && renderCareerPreferencesForm()}
         {type === "education" && renderEducationForm()}
         {type === "keySkills" && renderKeySkillsForm()}
@@ -1114,7 +1562,6 @@ const ResumeDetailDialog = ({
         {type === "academicAchievements" && renderAcademicAchievementsForm()}
         {type === "exams" && renderEntranceExamForm()}
         {type === "internships" && renderInternshipsForm()}
-        {!["careerPreferences", "education", "keySkills", "languages", "summary", "projects", "academicAchievements", "exams", "internships"].includes(type) && renderOtherForms()}
       </DialogContent>
     </Dialog>
   );
