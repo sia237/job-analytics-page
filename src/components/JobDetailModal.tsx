@@ -1,86 +1,99 @@
 
-import React from "react";
-import { Job } from "../types/job";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { X, Bookmark, Share2 } from "lucide-react";
 
 interface JobDetailModalProps {
-  job: Job;
-  isOpen: boolean;
-  onClose: () => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  job: {
+    id: number;
+    title: string;
+    company: string;
+    location: string;
+    experience: string;
+    salary: string;
+    description: string;
+    requirements: string[];
+    skills: string[];
+    type: string;
+  } | null;
 }
 
-const JobDetailModal = ({ job, isOpen, onClose }: JobDetailModalProps) => {
-  if (!isOpen) return null;
+const JobDetailModal = ({ open, onOpenChange, job }: JobDetailModalProps) => {
+  if (!job) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-[#FFF2E5] rounded-lg p-6 max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between mb-4">
-          <div className="flex items-start gap-4">
-            <div className="bg-black text-white w-12 h-12 flex items-center justify-center rounded-md">
-              {job.company.charAt(0)}
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto p-0">
+        <div className="bg-orange-50 p-6 border-b">
+          <div className="flex justify-between items-start mb-4">
+            <div className="flex items-center gap-3">
+              <div className="bg-black text-white w-10 h-10 rounded flex items-center justify-center font-bold">
+                {job.company.charAt(0)}
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold">{job.title}</h2>
+                <p className="text-gray-600">{job.company}</p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-xl font-bold">{job.title}</h2>
-              <p className="text-gray-700">{job.company}</p>
+            <div className="flex gap-2">
+              <Button variant="ghost" size="sm" className="p-2">
+                <Bookmark className="w-4 h-4" />
+              </Button>
+              <Button variant="ghost" size="sm" className="p-2">
+                <Share2 className="w-4 h-4" />
+              </Button>
+              <Button variant="ghost" size="sm" className="p-2" onClick={() => onOpenChange(false)}>
+                <X className="w-4 h-4" />
+              </Button>
             </div>
           </div>
-          <button 
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
-          >
-            ✕
-          </button>
-        </div>
-        
-        <div className="flex items-center gap-2 text-sm mb-2">
-          <span className="bg-white px-2 py-1 rounded">{job.location}</span>
-          <span className="bg-violet-100 text-violet-800 px-2 py-1 rounded">{job.type}</span>
-        </div>
-        
-        <div className="flex flex-wrap gap-2 items-center text-sm mb-4">
-          <span className="font-medium">Experience: </span>
-          <span>{job.experience}</span>
-        </div>
-        
-        <div className="flex justify-between items-center mb-8">
-          <div className="text-lg font-bold">{job.salary}</div>
-          <Button className="bg-blue-600 hover:bg-blue-700">Apply</Button>
-        </div>
-        
-        <div className="bg-white p-6 rounded-lg">
-          <h3 className="text-lg font-semibold mb-4">Job description</h3>
-          <p className="text-gray-700 mb-4">
-            We have a Great Job Opportunity with a leading company for a {job.title} position.
-          </p>
           
-          <h4 className="font-semibold mt-4">Required Skills:</h4>
-          <ul className="list-disc pl-6 mb-4">
-            {job.skills.map((skill, index) => (
-              <li key={index}>{skill}</li>
-            ))}
-            <li>Strong communication and collaboration skills</li>
-            <li>Problem-solving mindset and attention to detail</li>
-          </ul>
+          <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-4">
+            <span>📍 {job.location}</span>
+            <span>💼 {job.experience}</span>
+            <span>💰 {job.salary}</span>
+            <span>⏰ {job.type}</span>
+          </div>
           
-          <h4 className="font-semibold mt-4">Responsibilities:</h4>
-          <ul className="list-disc pl-6 mb-4">
-            <li>Work with cross-functional teams to deliver high-quality products</li>
-            <li>Stay up-to-date with industry trends and best practices</li>
-            <li>Participate in design reviews and provide constructive feedback</li>
-            <li>Contribute to the continuous improvement of our processes</li>
-          </ul>
-          
-          <h4 className="font-semibold mt-4">Benefits:</h4>
-          <ul className="list-disc pl-6">
-            <li>Competitive salary and benefits package</li>
-            <li>Flexible work arrangements</li>
-            <li>Professional development opportunities</li>
-            <li>Collaborative and inclusive work environment</li>
-          </ul>
+          <Button className="bg-blue-600 hover:bg-blue-700 text-white px-8">
+            Apply
+          </Button>
         </div>
-      </div>
-    </div>
+        
+        <div className="p-6">
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold mb-3">Job description</h3>
+            <p className="text-gray-700 leading-relaxed">{job.description}</p>
+          </div>
+          
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold mb-3">Requirements</h3>
+            <ul className="space-y-2">
+              {job.requirements.map((req, index) => (
+                <li key={index} className="flex items-start gap-2">
+                  <span className="text-blue-600 mt-1">•</span>
+                  <span className="text-gray-700">{req}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold mb-3">Soft Skills</h3>
+            <div className="flex flex-wrap gap-2">
+              {job.skills.map((skill, index) => (
+                <Badge key={index} variant="secondary" className="bg-gray-100 text-gray-700">
+                  {skill}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 

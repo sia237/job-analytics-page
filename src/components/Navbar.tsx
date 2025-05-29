@@ -1,11 +1,15 @@
-
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const location = useLocation();
+
+  const isActive = (path: string) => {
+    return location.pathname === path;
+  };
 
   return (
     <header className="bg-blue-600 text-white">
@@ -13,10 +17,30 @@ const Navbar = () => {
         <div className="flex items-center mb-4 md:mb-0">
           <Link to="/" className="text-2xl font-bold">Zuperr</Link>
           <nav className="ml-8 hidden md:flex">
-            <Link to="/" className="mx-3 border-b-2 border-white">Jobs</Link>
-            <Link to="/companies" className="mx-3 text-blue-200 hover:text-white">Companies</Link>
-            <Link to="/analytics" className="mx-3 text-blue-200 hover:text-white">Analytics</Link>
-            <Link to="/resume-builder" className="mx-3 text-blue-200 hover:text-white">Create resume</Link>
+            <Link 
+              to="/" 
+              className={`mx-3 ${isActive('/') ? 'border-b-2 border-white' : 'text-blue-200 hover:text-white'}`}
+            >
+              Jobs
+            </Link>
+            <Link 
+              to="/companies" 
+              className={`mx-3 ${isActive('/companies') ? 'border-b-2 border-white' : 'text-blue-200 hover:text-white'}`}
+            >
+              Companies
+            </Link>
+            <Link 
+              to="/analytics" 
+              className={`mx-3 ${isActive('/analytics') ? 'border-b-2 border-white' : 'text-blue-200 hover:text-white'}`}
+            >
+              Analytics
+            </Link>
+            <Link 
+              to="/resume-builder" 
+              className={`mx-3 ${isActive('/resume-builder') ? 'border-b-2 border-white' : 'text-blue-200 hover:text-white'}`}
+            >
+              Create resume
+            </Link>
           </nav>
         </div>
 
@@ -78,10 +102,30 @@ const Navbar = () => {
         
         {isMenuOpen && (
           <nav className="px-4 py-2 flex flex-col space-y-2 bg-blue-700">
-            <Link to="/" className="py-2">Jobs</Link>
-            <Link to="/companies" className="py-2">Companies</Link>
-            <Link to="/analytics" className="py-2">Analytics</Link>
-            <Link to="/resume-builder" className="py-2">Create resume</Link>
+            <Link 
+              to="/" 
+              className={`py-2 ${isActive('/') ? 'font-semibold' : ''}`}
+            >
+              Jobs
+            </Link>
+            <Link 
+              to="/companies" 
+              className={`py-2 ${isActive('/companies') ? 'font-semibold' : ''}`}
+            >
+              Companies
+            </Link>
+            <Link 
+              to="/analytics" 
+              className={`py-2 ${isActive('/analytics') ? 'font-semibold' : ''}`}
+            >
+              Analytics
+            </Link>
+            <Link 
+              to="/resume-builder" 
+              className={`py-2 ${isActive('/resume-builder') ? 'font-semibold' : ''}`}
+            >
+              Create resume
+            </Link>
             <Link to="/profile" className="py-2">Profile</Link>
           </nav>
         )}

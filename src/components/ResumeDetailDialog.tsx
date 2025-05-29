@@ -1191,8 +1191,8 @@ const ResumeDetailDialog = ({
   const renderEducationForm = () => (
     <form onSubmit={handleSubmit} className="space-y-4 mt-4">
       <div className="text-sm text-gray-600 mb-4">
-        Including details of my educational journey enriches my profile, highlighting the 
-        foundational knowledge and skills that have shaped my career.
+        Highlighting your academic qualifications, degrees, and certifications to showcasing 
+        your expertise and boosting your chances of finding the right opportunity.
       </div>
 
       <div className="space-y-2">
@@ -1215,7 +1215,7 @@ const ResumeDetailDialog = ({
 
       {formData.educationLevel && (
         <>
-          {formData.educationLevel === "10th" && (
+          {(formData.educationLevel === "10th" || formData.educationLevel === "12th") && (
             <>
               <div className="space-y-2">
                 <Label className="text-sm font-medium">Select Examination Board*</Label>
@@ -1287,11 +1287,12 @@ const ResumeDetailDialog = ({
                     <SelectValue placeholder="Select Year" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="2024">2024</SelectItem>
-                    <SelectItem value="2023">2023</SelectItem>
-                    <SelectItem value="2022">2022</SelectItem>
-                    <SelectItem value="2021">2021</SelectItem>
-                    <SelectItem value="2020">2020</SelectItem>
+                    {Array.from({ length: 20 }, (_, i) => {
+                      const year = new Date().getFullYear() - i;
+                      return (
+                        <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
+                      );
+                    })}
                   </SelectContent>
                 </Select>
               </div>

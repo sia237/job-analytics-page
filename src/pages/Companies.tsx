@@ -1,7 +1,7 @@
-
 import { useState } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import JobDetailModal from "../components/JobDetailModal";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { 
@@ -108,6 +108,28 @@ const COMPANIES = [
   },
 ];
 
+// Sample job data for the modal
+const SAMPLE_JOB = {
+  id: 1,
+  title: "Senior UI/UX Designer",
+  company: "Amazon",
+  location: "Gurgaon (Gur)",
+  experience: "2-5 Years",
+  salary: "₹ 4-8 LPA",
+  type: "Full Time",
+  description: "We are excited to bring a creative and dedicated UI/UX with a lending Indian MNC into manufacturing of Industrial Minerals & Speciality Chemicals for Aryenem.",
+  requirements: [
+    "Proficient in UI/UX Software Creative Suite (Photoshop, Illustrator, InDesign)",
+    "Workbooks: Adobe Premiere Pro, After Effects, Final Cut Pro, Canva Pro",
+    "Optional: Blender, Figma, Adobe"
+  ],
+  skills: [
+    "Strong attention to detail",
+    "Strong communication and time management skills",
+    "Ability to take feedback and work on tight deadlines"
+  ]
+};
+
 const INDUSTRIES = [
   "All Industries",
   "Technology",
@@ -125,6 +147,7 @@ const Companies = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedIndustry, setSelectedIndustry] = useState("All Industries");
   const [showFilters, setShowFilters] = useState(false);
+  const [jobModalOpen, setJobModalOpen] = useState(false);
   
   const companiesPerPage = 6;
   
@@ -143,6 +166,10 @@ const Companies = () => {
   const currentCompanies = filteredCompanies.slice(indexOfFirstCompany, indexOfLastCompany);
   
   const totalPages = Math.ceil(filteredCompanies.length / companiesPerPage);
+  
+  const handleViewJobs = () => {
+    setJobModalOpen(true);
+  };
   
   return (
     <div className="min-h-screen bg-gray-50">
@@ -257,8 +284,12 @@ const Companies = () => {
               </div>
               
               <div className="bg-gray-50 p-4 border-t border-gray-200">
-                <Button variant="default" className="w-full bg-blue-600 hover:bg-blue-700">
-                  View Company
+                <Button 
+                  variant="default" 
+                  className="w-full bg-blue-600 hover:bg-blue-700"
+                  onClick={handleViewJobs}
+                >
+                  View Jobs
                 </Button>
               </div>
             </div>
@@ -308,6 +339,12 @@ const Companies = () => {
         )}
       </main>
       <Footer />
+      
+      <JobDetailModal
+        open={jobModalOpen}
+        onOpenChange={setJobModalOpen}
+        job={SAMPLE_JOB}
+      />
     </div>
   );
 };
