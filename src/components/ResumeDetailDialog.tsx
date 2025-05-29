@@ -212,16 +212,16 @@ const ResumeDetailDialog = ({
   );
 
   const renderEducationForm = () => (
-    <form onSubmit={handleSubmit} className="space-y-6 mt-4">
+    <form onSubmit={handleSubmit} className="space-y-4 mt-4">
       <div className="text-sm text-gray-600 mb-4">
-        Highlighting your academic qualifications, degrees, and certifications to showcasing 
-        your expertise and boosting your chances of finding the right opportunity.
+        Including details of my educational journey enriches my profile, highlighting the 
+        foundational knowledge and skills that have shaped my career.
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="education">Add Education *</Label>
+        <Label htmlFor="education" className="text-sm font-medium">Add Education*</Label>
         <Select onValueChange={(value) => handleSelectChange('educationLevel', value)}>
-          <SelectTrigger>
+          <SelectTrigger className="w-full">
             <SelectValue placeholder="Add Education" />
           </SelectTrigger>
           <SelectContent>
@@ -238,173 +238,256 @@ const ResumeDetailDialog = ({
 
       {formData.educationLevel && (
         <>
-          <div className="space-y-2">
-            <Label htmlFor="courseName">Course Name *</Label>
-            <Select onValueChange={(value) => handleSelectChange('courseName', value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Course Name" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="B.Tech">B.Tech</SelectItem>
-                <SelectItem value="BCA">BCA</SelectItem>
-                <SelectItem value="BSc">BSc</SelectItem>
-                <SelectItem value="BA">BA</SelectItem>
-                <SelectItem value="B.Com">B.Com</SelectItem>
-                <SelectItem value="MBA">MBA</SelectItem>
-                <SelectItem value="MCA">MCA</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          {formData.educationLevel === "10th" && (
+            <>
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Select Examination Board*</Label>
+                <Select onValueChange={(value) => handleSelectChange('examinationBoard', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Examination Board" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="CBSE">CBSE</SelectItem>
+                    <SelectItem value="State Board">State Board</SelectItem>
+                    <SelectItem value="ICSE">ICSE</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="specialization">Specialization *</Label>
-            <Select onValueChange={(value) => handleSelectChange('specialization', value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Specialization" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Computer Science">Computer Science</SelectItem>
-                <SelectItem value="Information Technology">Information Technology</SelectItem>
-                <SelectItem value="Electronics">Electronics</SelectItem>
-                <SelectItem value="Mechanical Engineering">Mechanical Engineering</SelectItem>
-                <SelectItem value="Civil Engineering">Civil Engineering</SelectItem>
-                <SelectItem value="Electrical Engineering">Electrical Engineering</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Percentage/CGPA* ( CGPA Out of 10 , GPA out of 4, Percentage, course Require Pass)</Label>
+                <div className="flex gap-4 mb-3">
+                  <label className="flex items-center gap-2">
+                    <input 
+                      type="radio" 
+                      name="scoreType" 
+                      value="percentage"
+                      checked={formData.scoreType === 'percentage'}
+                      onChange={handleChange}
+                      className="text-blue-600"
+                    />
+                    <span className="text-sm">Percentage</span>
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input 
+                      type="radio" 
+                      name="scoreType" 
+                      value="cgpa"
+                      checked={formData.scoreType === 'cgpa'}
+                      onChange={handleChange}
+                      className="text-blue-600"
+                    />
+                    <span className="text-sm">CGPA/GPA</span>
+                  </label>
+                </div>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Acquired"
+                    name="acquiredScore"
+                    value={formData.acquiredScore || ""}
+                    onChange={handleChange}
+                    className="w-24"
+                  />
+                  <span className="flex items-center text-sm">Out of</span>
+                  <Select onValueChange={(value) => handleSelectChange('totalScore', value)}>
+                    <SelectTrigger className="w-20">
+                      <SelectValue placeholder="Total" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="4">4</SelectItem>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="100">100</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
 
-          <div className="space-y-2">
-            <Label>Percentage/CGPA * (* Score Out of 10, GPA out of 4, Percentage, course Require Pass)</Label>
-            <div className="flex gap-4 mb-3">
-              <label className="flex items-center gap-2">
-                <input 
-                  type="radio" 
-                  name="scoreType" 
-                  value="percentage"
-                  checked={formData.scoreType === 'percentage'}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Select Year*</Label>
+                <Select onValueChange={(value) => handleSelectChange('passingYear', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Year" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="2024">2024</SelectItem>
+                    <SelectItem value="2023">2023</SelectItem>
+                    <SelectItem value="2022">2022</SelectItem>
+                    <SelectItem value="2021">2021</SelectItem>
+                    <SelectItem value="2020">2020</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </>
+          )}
+
+          {(formData.educationLevel === "Graduate" || formData.educationLevel === "Post Graduate") && (
+            <>
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Course Name*</Label>
+                <Select onValueChange={(value) => handleSelectChange('courseName', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Course Name" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="B.Tech">B.Tech</SelectItem>
+                    <SelectItem value="BCA">BCA</SelectItem>
+                    <SelectItem value="BSc">BSc</SelectItem>
+                    <SelectItem value="BA">BA</SelectItem>
+                    <SelectItem value="B.Com">B.Com</SelectItem>
+                    <SelectItem value="MBA">MBA</SelectItem>
+                    <SelectItem value="MCA">MCA</SelectItem>
+                    <SelectItem value="MSc">MSc</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Specialization*</Label>
+                <Select onValueChange={(value) => handleSelectChange('specialization', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Specialization" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Computer Science">Computer Science</SelectItem>
+                    <SelectItem value="Information Technology">Information Technology</SelectItem>
+                    <SelectItem value="Electronics">Electronics</SelectItem>
+                    <SelectItem value="Mechanical Engineering">Mechanical Engineering</SelectItem>
+                    <SelectItem value="Civil Engineering">Civil Engineering</SelectItem>
+                    <SelectItem value="Electrical Engineering">Electrical Engineering</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Percentage/CGPA* ( CGPA Out of 10 , GPA out of 4, Percentage, course Require Pass)</Label>
+                <div className="flex gap-4 mb-3">
+                  <label className="flex items-center gap-2">
+                    <input 
+                      type="radio" 
+                      name="scoreType" 
+                      value="percentage"
+                      checked={formData.scoreType === 'percentage'}
+                      onChange={handleChange}
+                      className="text-blue-600"
+                    />
+                    <span className="text-sm">Percentage</span>
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input 
+                      type="radio" 
+                      name="scoreType" 
+                      value="cgpa"
+                      checked={formData.scoreType === 'cgpa'}
+                      onChange={handleChange}
+                      className="text-blue-600"
+                    />
+                    <span className="text-sm">CGPA/GPA</span>
+                  </label>
+                </div>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Acquired"
+                    name="acquiredScore"
+                    value={formData.acquiredScore || ""}
+                    onChange={handleChange}
+                    className="w-24"
+                  />
+                  <span className="flex items-center text-sm">Out of</span>
+                  <Select onValueChange={(value) => handleSelectChange('totalScore', value)}>
+                    <SelectTrigger className="w-20">
+                      <SelectValue placeholder="Total" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="CGPA out of 10">CGPA out of 10</SelectItem>
+                      <SelectItem value="GPA out of 4">GPA out of 4</SelectItem>
+                      <SelectItem value="GPA out of 5">GPA out of 5</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Institute / University Name*</Label>
+                <Input
+                  name="institution"
+                  placeholder="Institute / University Name"
+                  value={formData.institution || ""}
                   onChange={handleChange}
                 />
-                <span>Percentage</span>
-              </label>
-              <label className="flex items-center gap-2">
-                <input 
-                  type="radio" 
-                  name="scoreType" 
-                  value="cgpa"
-                  checked={formData.scoreType === 'cgpa'}
-                  onChange={handleChange}
-                />
-                <span>GPA/GPA</span>
-              </label>
-            </div>
-            <div className="flex gap-2">
-              <Select onValueChange={(value) => handleSelectChange('scoreStatus', value)}>
-                <SelectTrigger className="w-32">
-                  <SelectValue placeholder="Appeared" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Appeared">Appeared</SelectItem>
-                  <SelectItem value="Passed">Passed</SelectItem>
-                  <SelectItem value="Pursuing">Pursuing</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select onValueChange={(value) => handleSelectChange('gradeType', value)}>
-                <SelectTrigger className="w-24">
-                  <SelectValue placeholder="Out of" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="4">4</SelectItem>
-                  <SelectItem value="10">10</SelectItem>
-                  <SelectItem value="100">100</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select onValueChange={(value) => handleSelectChange('totalGrade', value)}>
-                <SelectTrigger className="w-24">
-                  <SelectValue placeholder="Total" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="CGPA out of 10">CGPA out of 10</SelectItem>
-                  <SelectItem value="GPA out of 4">GPA out of 4</SelectItem>
-                  <SelectItem value="GPA out of 4">GPA out of 4</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+              </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="institution">Institute / University Name *</Label>
-            <Input
-              name="institution"
-              placeholder="Institute / University Name"
-              value={formData.institution || ""}
-              onChange={handleChange}
-            />
-          </div>
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Course Duration*</Label>
+                <div className="flex gap-2 items-center">
+                  <Input
+                    name="startYear"
+                    placeholder="MM/YYYY"
+                    value={formData.startYear || ""}
+                    onChange={handleChange}
+                    className="w-32"
+                  />
+                  <span>To</span>
+                  <Input
+                    name="endYear"
+                    placeholder="MM/YYYY"
+                    value={formData.endYear || ""}
+                    onChange={handleChange}
+                    className="w-32"
+                  />
+                </div>
+              </div>
 
-          <div className="space-y-2">
-            <Label>Course Duration *</Label>
-            <div className="flex gap-2 items-center">
-              <Input
-                name="startYear"
-                placeholder="MM/YYYY"
-                value={formData.startYear || ""}
-                onChange={handleChange}
-                className="w-24"
-              />
-              <span>To</span>
-              <Input
-                name="endYear"
-                placeholder="MM/YYYY"
-                value={formData.endYear || ""}
-                onChange={handleChange}
-                className="w-24"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Course Type *</Label>
-            <div className="flex gap-4">
-              <label className="flex items-center gap-2">
-                <input 
-                  type="radio" 
-                  name="courseType" 
-                  value="fullTime"
-                  checked={formData.courseType === 'fullTime'}
-                  onChange={handleChange}
-                />
-                <span>Full Time</span>
-              </label>
-              <label className="flex items-center gap-2">
-                <input 
-                  type="radio" 
-                  name="courseType" 
-                  value="partTime"
-                  checked={formData.courseType === 'partTime'}
-                  onChange={handleChange}
-                />
-                <span>Part Time</span>
-              </label>
-              <label className="flex items-center gap-2">
-                <input 
-                  type="radio" 
-                  name="courseType" 
-                  value="distanceLearning"
-                  checked={formData.courseType === 'distanceLearning'}
-                  onChange={handleChange}
-                />
-                <span>Distance Learning</span>
-              </label>
-            </div>
-          </div>
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Course Type*</Label>
+                <div className="flex gap-4">
+                  <label className="flex items-center gap-2">
+                    <input 
+                      type="radio" 
+                      name="courseType" 
+                      value="fullTime"
+                      checked={formData.courseType === 'fullTime'}
+                      onChange={handleChange}
+                      className="text-blue-600"
+                    />
+                    <span className="text-sm">Full Time</span>
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input 
+                      type="radio" 
+                      name="courseType" 
+                      value="partTime"
+                      checked={formData.courseType === 'partTime'}
+                      onChange={handleChange}
+                      className="text-blue-600"
+                    />
+                    <span className="text-sm">Part Time</span>
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input 
+                      type="radio" 
+                      name="courseType" 
+                      value="distanceLearning"
+                      checked={formData.courseType === 'distanceLearning'}
+                      onChange={handleChange}
+                      className="text-blue-600"
+                    />
+                    <span className="text-sm">Distance Learning</span>
+                  </label>
+                </div>
+              </div>
+            </>
+          )}
         </>
       )}
 
-      <DialogFooter>
+      <DialogFooter className="mt-6">
         <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
           Cancel
         </Button>
-        <Button type="submit">Save</Button>
+        <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
+          Save
+        </Button>
       </DialogFooter>
     </form>
   );
